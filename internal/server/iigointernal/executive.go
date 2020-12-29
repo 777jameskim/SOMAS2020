@@ -182,7 +182,7 @@ func getIslandAlive() []float64 {
 // incur charges in both budget and commonpool for performing an actions
 // actionID is typically the function name of the action
 // only return error if we can't withdraw from common pool
-func (e *executive) incurServiceCharge(actionID string) bool {
+func (e *executive) incurServiceCharge() bool {
 	cost := config.GameConfig().IIGOConfig.ExecutiveActionCost[actionID]
 	_, ok := WithdrawFromCommonPool(cost, e.gameState)
 	if ok {

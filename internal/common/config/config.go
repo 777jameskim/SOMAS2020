@@ -62,14 +62,29 @@ type DisasterConfig struct {
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
 }
 
-/*
 // IIGOConfig (document cost of each action)
 type IIGOConfig struct {
-	ExecutiveActionCost   map[string]shared.Resources
-	JudiciaryActionCost   map[string]shared.Resources
-	LegislativeActionCost map[string]shared.Resources
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
 
+/*
 // GameConfig returns the configuration of the game.
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
