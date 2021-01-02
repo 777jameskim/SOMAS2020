@@ -15,6 +15,7 @@ const (
 	CommunicationString
 	CommunicationBool
 	CommunicationIIGORole
+	CommunicationIIGORule
 )
 
 func (c CommunicationContentType) String() string {
@@ -23,6 +24,7 @@ func (c CommunicationContentType) String() string {
 		"CommunicationString",
 		"CommunicationBool",
 		"CommunicationIIGORole",
+		"CommunicationIIGORule",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
@@ -52,6 +54,7 @@ type CommunicationContent struct {
 	TextData     string
 	BooleanData  bool
 	IIGORoleData Role
+	IIGORuleData rules.RuleMatrix
 }
 
 type CommunicationFieldName int

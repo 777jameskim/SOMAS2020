@@ -43,8 +43,9 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 // COMPULSORY: decide how much to tax islands, using rules as a guide if you wish.
 func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
+	taxRate := 0.1
 	for id, resourceLeft := range islandsResources {
-		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
+		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * taxRate)
 	}
 	return taxAmountMap, true
 }

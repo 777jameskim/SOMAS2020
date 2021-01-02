@@ -1,8 +1,10 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 
 	"reflect" // Used to compare two maps
 
@@ -468,6 +470,93 @@ func TestGetAllocationRequests(t *testing.T) {
 			val, _ := tc.bPresident.getAllocationRequests(tc.input)
 			if !reflect.DeepEqual(val, tc.expected) {
 				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
+			}
+		})
+	}
+}
+
+func TestBroadcastTaxation(t *testing.T) {
+	cases := []struct {
+		name          string
+		bPresident    executive // base
+		commonPool    shared.Resources
+		clientReports map[shared.ClientID]shared.Resources
+	}{
+		{
+			name: "Simple test",
+			bPresident: executive{
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			commonPool: 150,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			// fakeGameState := gamestate.GameState{
+			// 	CommonPool: tc.commonPool,
+			// 	IIGORolesBudget: map[string]shared.Resources{
+			// 		"president": 10,
+			// 		"speaker":   10,
+			// 		"judge":     10,
+			// 	},
+			// }
+
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientReports {
+				aliveID = append(aliveID, clientID)
+				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+			}
+
+			setIIGOClients(&fakeClientMap)
+			//tc.bPresident.setGameState(&fakeGameState)
+
+			tc.bPresident.broadcastTaxation(tc.clientReports)
+
+			for clientID, resources := range tc.clientReports {
+				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
+				presidentCommunication := communicationsGot[tc.bPresident.ID][0]
+				taxRule := presidentCommunication[shared.TaxAmount]
+
+				if reflect.DeepEqual(taxRule, shared.CommunicationContent{}) {
+					t.Errorf("Taxation failed for client %v. Got communications : %v", clientID, communicationsGot)
+				}
+
+				if taxRule.T != shared.CommunicationIIGORule {
+					t.Errorf("Taxation failed for client %v. Rule type is %v", clientID, taxRule.T)
+
+				}
+
+				if reflect.DeepEqual(taxRule.IIGORuleData, rules.RuleMatrix{}) {
+					t.Errorf("Taxation failed for client %v. Rule entry is empty. Got communication : %v", clientID, taxRule)
+				}
+
+				ok, val, errEval := rules.GetValueFromRule(taxRule.IIGORuleData)
+
+				if errEval != nil {
+					t.Errorf("Error evaluating rule: %v", errEval)
+				}
+
+				if !ok {
+					t.Error("Taxation rule evaluation failed. Returned ok == false")
+				}
+
+				expectedTax := 0.1 * float64(resources)
+				if val != expectedTax {
+					t.Errorf("Wrong value for %v. Expected tax: %v, evaluated tax: %v", clientID, expectedTax, val)
+				}
 			}
 		})
 	}

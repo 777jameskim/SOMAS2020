@@ -8,6 +8,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"gonum.org/v1/gonum/mat"
 )
 
 type executive struct {
@@ -66,8 +67,9 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 	e.budget -= serviceCharge
 	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
 	if taxesCollected {
+		taxRuleMap := amountsToRules(taxAmountMap, rules.ExpectedTaxContribution)
 		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
+			d := shared.CommunicationContent{T: shared.CommunicationIIGORule, IIGORuleData: taxRuleMap[shared.ClientID(int(island))]}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.TaxAmount] = d
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
@@ -171,4 +173,31 @@ func (e *executive) requestRuleProposal() {
 
 func getIslandAlive() []float64 {
 	return rules.VariableMap[rules.IslandsAlive].Values
+}
+
+func amountsToRules(amounts map[shared.ClientID]shared.Resources, ruleType rules.VariableFieldName) map[shared.ClientID]rules.RuleMatrix {
+	amountRules := map[shared.ClientID]rules.RuleMatrix{}
+
+	for clientID, amount := range amounts {
+
+		reqVar := []rules.VariableFieldName{ruleType}
+		v := []float64{float64(amount), 0}
+		aux := []float64{4}
+
+		rowLength := len(reqVar) + 1
+		nrows := len(v) / rowLength
+
+		CoreMatrix := mat.NewDense(nrows, rowLength, v)
+		AuxiliaryVector := mat.NewVecDense(nrows, aux)
+
+		amountRules[clientID] = rules.RuleMatrix{
+			RuleName:          clientID.String() + "_" + ruleType.String(),
+			RequiredVariables: reqVar,
+			ApplicableMatrix:  *CoreMatrix,
+			AuxiliaryVector:   *AuxiliaryVector,
+			Mutable:           false,
+		}
+
+	}
+	return amountRules
 }
