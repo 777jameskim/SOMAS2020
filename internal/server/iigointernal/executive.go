@@ -90,6 +90,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
+		TaxAmountMapExport = taxMapReturn.ResourceMap
 		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
 				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
