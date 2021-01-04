@@ -136,6 +136,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		allocationsMade = true
+		AllocationAmountMapExport = returnContent.ResourceMap
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(returnContent.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
