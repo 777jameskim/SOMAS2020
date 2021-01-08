@@ -1,9 +1,37 @@
 package team4
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+func (j *judge) logf(format string, a ...interface{}) {
+	if j.t != nil {
+		j.t.Log(fmt.Sprintf(format, a...))
+	}
+}
+
+func dump(filename string, format string, v ...interface{}) {
+	//f, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer f.Close()
+
+	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
+
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+
+}
 
 func (c *client) getTurn() uint {
 	if c.ServerReadHandle != nil {
