@@ -178,13 +178,14 @@ func TestSaveHistoryInfo(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			testClient := client{
-				BaseClient:    baseclient.NewClient(id),
-				clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:           "",
-				obs:           &observation{},
-				internalParam: &internalParameters{},
-				savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+				BaseClient:         baseclient.NewClient(id),
+				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+				yes:                "",
+				obs:                &observation{},
+				internalParam:      &internalParameters{},
+				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
+				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 			}
 			testClient.clientJudge.parent = &testClient
 			j := testClient.clientJudge
@@ -209,6 +210,92 @@ func TestSaveHistoryInfo(t *testing.T) {
 				t.Errorf("Whole history comparison failed. Saved history: %v", *testClient.savedHistory)
 			}
 
+		})
+	}
+}
+
+func TestCallPresidentElection(t *testing.T) {
+	cases := []struct {
+		name               string
+		monitoring         shared.MonitorResult
+		turnsInPower       int
+		termLength         uint
+		electionRuleInPlay bool
+		expectedElection   bool
+	}{
+		{
+			name:               "no conditions",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       1,
+			termLength:         1,
+			electionRuleInPlay: false,
+			expectedElection:   false,
+		},
+		{
+			name:               "term length exceeded. no rule",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       2,
+			termLength:         1,
+			electionRuleInPlay: false,
+			expectedElection:   false,
+		},
+		{
+			name:               "term length exceeded. rule in play",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       7,
+			termLength:         5,
+			electionRuleInPlay: true,
+			expectedElection:   true,
+		},
+		{
+			name:               "termLength=turnsInPower. rule in play",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       5,
+			termLength:         5,
+			electionRuleInPlay: true,
+			expectedElection:   false,
+		},
+	}
+
+	allTeams := []shared.ClientID{}
+	for _, client := range shared.TeamIDs {
+		allTeams = append(allTeams, client)
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			testServer := fakeServerHandle{
+				TermLengths: map[shared.Role]uint{
+					shared.President: tc.termLength,
+				},
+			}
+
+			testClient := client{
+				BaseClient:         baseclient.NewClient(id),
+				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+				yes:                "",
+				obs:                &observation{},
+				internalParam:      &internalParameters{},
+				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
+				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+			}
+
+			testClient.clientJudge.parent = &testClient
+			testClient.Initialise(testServer)
+
+			if tc.electionRuleInPlay {
+				rules.PullRuleIntoPlay("roles_must_hold_election")
+			}
+
+			j := testClient.GetClientJudgePointer()
+
+			got := j.CallPresidentElection(tc.monitoring, tc.turnsInPower, allTeams)
+
+			if got.HoldElection != tc.expectedElection {
+				t.Errorf("Expected holdElection: %v. Got holdElection: %v", tc.expectedElection, got.HoldElection)
+			}
 		})
 	}
 }
