@@ -5,9 +5,26 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// ########################
+// ######  Testing  #######
+// ########################
+
+type stubServerReadHandle struct {
+	gameState  gamestate.ClientGameState
+	gameConfig config.ClientConfig
+}
+
+func (s stubServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return s.gameState
+}
+func (s stubServerReadHandle) GetGameConfig() config.ClientConfig {
+	return s.gameConfig
+}
 
 func TestRaiseFriendshipLevel(t *testing.T) {
 	tests := []struct {
@@ -27,7 +44,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 50.0,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team3,
 			testIncrement: FriendshipLevel(50.0),
@@ -49,7 +66,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 90.0,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team5,
 			testIncrement: FriendshipLevel(100.0),
@@ -91,7 +108,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 50.0,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team3,
 			testDeduction: FriendshipLevel(50.0),
@@ -113,7 +130,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 10.0,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team5,
 			testDeduction: FriendshipLevel(100.0),
@@ -153,7 +170,7 @@ func TestGetFriendshipCoeffs(t *testing.T) {
 					shared.Team4: 75.28,
 					shared.Team5: 99.31,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: map[shared.ClientID]float64{
 				shared.Team1: 0.0,
@@ -173,7 +190,7 @@ func TestGetFriendshipCoeffs(t *testing.T) {
 					shared.Team4: 3.35,
 					shared.Team5: 100.0,
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: map[shared.ClientID]float64{
 				shared.Team1: 0.2201,
@@ -217,7 +234,7 @@ func TestGetPersonality(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: Personality(Selfish),
 		},
@@ -233,7 +250,7 @@ func TestGetPersonality(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: Personality(Normal),
 		},
@@ -249,7 +266,7 @@ func TestGetPersonality(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: Personality(Generous),
 		},
@@ -273,6 +290,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 	}{
 		{
 			testname: "1 survivor test",
+
 			testClient: client{
 				BaseClient: &baseclient.BaseClient{
 					ServerReadHandle: stubServerReadHandle{
@@ -288,7 +306,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: uint(1),
 		},
@@ -309,7 +327,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: uint(3),
 		},
@@ -330,7 +348,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 						},
 					},
 				},
-				clientConfig: getClientConfig(),
+				clientConfig: clientConfig,
 			},
 			want: uint(6),
 		},

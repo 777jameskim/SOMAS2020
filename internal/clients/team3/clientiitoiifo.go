@@ -29,45 +29,31 @@ import (
 */
 
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
+	// Use the sample mean of each field as our prediction
+	meanDisaster := getMeanDisaster(c.pastDisastersList)
 
-	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
+	prediction := shared.DisasterPrediction{
+		CoordinateX: meanDisaster.CoordinateX,
+		CoordinateY: meanDisaster.CoordinateY,
+		Magnitude:   meanDisaster.Magnitude,
+		TimeLeft:    uint(meanDisaster.Turn),
+	}
+
+	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
+	// Use a variance limit of 100 for now
+	varianceLimit := 100.0
+	prediction.Confidence = determineConfidence(c.pastDisastersList, meanDisaster, varianceLimit)
+
+	// For MVP, share this prediction with all islands since trust has not yet been implemented
+	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
 
-	if len(c.pastDisastersList) == 0 {
-		predictionInfo = shared.DisasterPredictionInfo{
-			PredictionMade: shared.DisasterPrediction{
-				CoordinateX: 0,
-				CoordinateY: 0,
-				Magnitude:   0,
-				TimeLeft:    0,
-				Confidence:  0.1,
-			},
-			TeamsOfferedTo: trustedIslands,
-		}
-	} else {
-		// Use the sample mean of each field as our prediction
-		meanDisaster := getMeanDisaster(c.pastDisastersList)
-
-		prediction := shared.DisasterPrediction{
-			CoordinateX: meanDisaster.CoordinateX,
-			CoordinateY: meanDisaster.CoordinateY,
-			Magnitude:   meanDisaster.Magnitude,
-			TimeLeft:    uint(meanDisaster.Turn),
-		}
-
-		// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
-		// Use a variance limit of 100 for now
-		varianceLimit := 100.0
-		prediction.Confidence = determineConfidence(c.pastDisastersList, meanDisaster, varianceLimit)
-
-		// Return all prediction info and store our own island's prediction in global variable
-		predictionInfo = shared.DisasterPredictionInfo{
-			PredictionMade: prediction,
-			TeamsOfferedTo: trustedIslands,
-		}
+	// Return all prediction info and store our own island's prediction in global variable
+	predictionInfo := shared.DisasterPredictionInfo{
+		PredictionMade: prediction,
+		TeamsOfferedTo: trustedIslands,
 	}
 
 	if len(c.disasterPredictions) < int(c.ServerReadHandle.GetGameState().Turn) {
@@ -130,11 +116,11 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	selfConfidence := c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].Confidence
 
 	// Initialise running totals using our own island's predictions
-	totalCoordinateX := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateX
-	totalCoordinateY := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateY
-	totalMagnitude := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].Magnitude
-	totalTimeLeft := uint(math.Round(selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
-	totalConfidence := selfConfidence
+	totalCoordinateX := c.trustScore[c.GetID()] * selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateX
+	totalCoordinateY := c.trustScore[c.GetID()] * selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateY
+	totalMagnitude := c.trustScore[c.GetID()] * selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].Magnitude
+	totalTimeLeft := uint(math.Round(c.trustScore[c.GetID()]*selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
+	totalConfidence := c.trustScore[c.GetID()] * selfConfidence
 
 	// Add other island's predictions using their confidence values
 	for islandID, prediction := range receivedPredictions {

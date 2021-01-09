@@ -165,13 +165,15 @@ func TestCommunicateWithIslands(t *testing.T) {
 				fakeClientMap[senderID] = baseclient.NewClient(senderID)
 			}
 
+			setIIGOClients(&fakeClientMap)
+
 			// Perform communications + build expected output
 			expectedResult := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 			for sender, dataList := range tc.sendersPayload {
 				senderID := shared.TeamIDs[sender]
 				for _, data := range dataList {
-					communicateWithIslands(fakeClientMap, receiverID, senderID, data)
+					communicateWithIslands(receiverID, senderID, data)
 
 					expectedResult[senderID] = append(expectedResult[senderID], data)
 				}
@@ -202,9 +204,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 300,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
 				},
 			},
 			inputValue:       100,
@@ -217,9 +219,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 300,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
 				},
 			},
 			inputValue:       -80,
@@ -232,9 +234,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 100,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 70},
-					shared.Team3: {Resources: 30},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 70},
+					shared.Team3: gamestate.ClientInfo{Resources: 30},
 				},
 			},
 			inputValue:       250,
@@ -269,9 +271,9 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 			name: "Deposit amount",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
 				},
 			},
 			inputValue:       80,
@@ -282,9 +284,9 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 			name: "Negative amount",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
 				},
 			},
 			inputValue:       -80,
@@ -295,9 +297,9 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 			name: "Negative resources",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 70},
-					shared.Team3: {Resources: 30},
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 70},
+					shared.Team3: gamestate.ClientInfo{Resources: 30},
 				},
 			},
 			inputValue:       -80,

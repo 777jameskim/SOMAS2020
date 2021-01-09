@@ -10,7 +10,6 @@ import {
   iitovisualisation,
   resourcesvisualisation,
   rolesvisualisation,
-  achievementsvisualisation,
 } from '../../consts/paths'
 import { OutputJSONType } from '../../consts/types'
 import { GitHash } from '../../consts/info'
@@ -29,7 +28,6 @@ import IITO from './IITO/IITO'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
-import Achievements from './Achievements/Achievements'
 import FourOhFour from '../FourOhFour/FourOhFour'
 
 const Visualisations = () => {
@@ -173,11 +171,6 @@ const Visualisations = () => {
                     path={rolesvisualisation}
                     exact
                     component={() => <Roles output={output} />}
-                  />
-                  <Route
-                    path={achievementsvisualisation}
-                    exact
-                    component={() => <Achievements output={output} />}
                   />
                   <Route
                     path={resourcesvisualisation}

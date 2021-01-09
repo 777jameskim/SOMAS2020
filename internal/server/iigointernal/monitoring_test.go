@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
@@ -102,19 +101,13 @@ func TestEvaluateCache(t *testing.T) {
 	}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
-	tempCache, _ := rules.InitialRuleRegistration(false)
-	avail := ruleStore
+	tempCache := rules.AvailableRules
+	rules.AvailableRules = ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			monitoring := &monitor{
 				internalIIGOCache: tc.iigoCache,
 				logger:            logging,
-				gameState: &gamestate.GameState{
-					RulesInfo: gamestate.RulesContext{
-						VariableMap:    generateDummyVariableCache(),
-						AvailableRules: avail,
-					},
-				},
 			}
 			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
@@ -122,7 +115,7 @@ func TestEvaluateCache(t *testing.T) {
 			}
 		})
 	}
-	avail = tempCache
+	rules.AvailableRules = tempCache
 }
 
 func TestFindRoleToMonitor(t *testing.T) {
@@ -163,11 +156,9 @@ func TestFindRoleToMonitor(t *testing.T) {
 		},
 	}
 	monitoring := &monitor{
-		gameState: &gamestate.GameState{
-			SpeakerID:   1,
-			PresidentID: 2,
-			JudgeID:     3,
-		},
+		speakerID:   1,
+		presidentID: 2,
+		judgeID:     3,
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

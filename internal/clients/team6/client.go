@@ -4,7 +4,6 @@ package team6
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -29,7 +28,7 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+	baseclient.RegisterClient(id, NewClient(id))
 }
 
 // ########################
@@ -39,37 +38,26 @@ func init() {
 // NewClient creates a client objects for our island
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient:   baseclient.NewClient(clientID),
-		clientConfig: getClientConfig(),
+		BaseClient:            baseclient.NewClient(clientID),
+		friendship:            friendship,
+		trustRank:             trustRank,
+		giftsSentHistory:      giftsSentHistory,
+		giftsReceivedHistory:  giftsReceivedHistory,
+		giftsRequestedHistory: giftsRequestedHistory,
+		forageHistory:         forageHistory,
+		disastersHistory:      disastersHistory,
+		disasterPredictions:   disasterPredictions,
+		clientConfig:          clientConfig,
 	}
 }
 
+// ------ TODO: OPTIONAL ------
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap(serverReadHandle.GetGameState().RulesInfo.VariableMap)
-
-	c.friendship = Friendship{}
-	c.trustRank = TrustRank{}
-	c.giftsSentHistory = GiftsSentHistory{}
-	c.giftsReceivedHistory = GiftsReceivedHistory{}
-	c.giftsRequestedHistory = GiftsRequestedHistory{}
-	c.disastersHistory = DisastersHistory{}
-	c.disasterPredictions = DisasterPredictions{}
-	c.forageHistory = ForageHistory{}
-	c.payingTax = 0.0
-
-	for _, team := range shared.TeamIDs {
-		if team == c.GetID() {
-			continue
-		}
-
-		c.friendship[team] = 50
-		c.trustRank[team] = 0.5
-	}
 }
 
 func (c *client) StartOfTurn() {
-	defer c.Logf("There are %v islands left in this game", c.getNumOfAliveIslands())
+	defer c.Logf("There are [%v] islands left in this game", c.getNumOfAliveIslands())
 
 	c.updateConfig()
 	c.updateFriendship()
@@ -77,11 +65,13 @@ func (c *client) StartOfTurn() {
 
 // updateConfig will be called at the start of each turn to set the newest config
 func (c *client) updateConfig() {
-	defer c.Logf("Configuration has been updated")
+	defer c.Logf("Agent[%v] configuration has been updated", c.BaseClient.GetID())
 
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	criticalCounter := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
 	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
+	maxCriticalCounter := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
 
 	updatedConfig := ClientConfig{
 		minFriendship:          0.0,
@@ -89,6 +79,7 @@ func (c *client) updateConfig() {
 		friendshipChangingRate: 20.0,
 		selfishThreshold:       minThreshold + 3.0*costOfLiving + ourResources/10.0,
 		normalThreshold:        minThreshold + 6.0*costOfLiving + ourResources/10.0,
+		payingTax:              shared.Resources(criticalCounter / maxCriticalCounter),
 	}
 
 	c.clientConfig = ClientConfig(updatedConfig)
@@ -96,7 +87,7 @@ func (c *client) updateConfig() {
 
 // updateFriendship will be called at the start of each turn to update our friendships
 func (c *client) updateFriendship() {
-	defer c.Logf("Friendship information has been updated")
+	defer c.Logf("Agent[%v] friendship information has been updated", c.BaseClient.GetID())
 
 	for team, requested := range c.giftsRequestedHistory {
 		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive {

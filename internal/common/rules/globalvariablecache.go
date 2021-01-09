@@ -12,8 +12,15 @@ type VariableValuePair struct {
 	Values       []float64
 }
 
-// RegisterNewVariableInternal provides primal register logic for any variable cache
-func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
+var VariableMap = map[VariableFieldName]VariableValuePair{}
+
+// RegisterNewVariable Registers the provided variable in the global variable cache
+func RegisterNewVariable(pair VariableValuePair) error {
+	return registerNewVariableInternal(pair, VariableMap)
+}
+
+// registerNewVariableInternal provides primal register logic for any variable cache
+func registerNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
 		return errors.Errorf("attempted to re-register a variable that had already been registered")
 	}
@@ -21,8 +28,13 @@ func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[Varia
 	return nil
 }
 
-// UpdateVariableInternal provides primal update logic for any variable cache
-func UpdateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
+// UpdateVariable Updates variable in global cache with new value
+func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) bool {
+	return updateVariableInternal(variableName, newValue, VariableMap)
+}
+
+// updateVariableInternal provides primal update logic for any variable cache
+func updateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
 	if _, ok := variableStore[variableName]; ok {
 		variableStore[variableName] = newValue
 		return true
@@ -30,10 +42,9 @@ func UpdateVariableInternal(variableName VariableFieldName, newValue VariableVal
 	return false
 }
 
-// CopyVariableMap easily copies variable cache
-func CopyVariableMap(varMap map[VariableFieldName]VariableValuePair) map[VariableFieldName]VariableValuePair {
+func CopyVariableMap() map[VariableFieldName]VariableValuePair {
 	newMap := make(map[VariableFieldName]VariableValuePair)
-	for key, value := range varMap {
+	for key, value := range VariableMap {
 		newMap[key] = value
 	}
 	return newMap

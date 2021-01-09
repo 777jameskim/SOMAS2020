@@ -17,7 +17,4 @@ func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 	}, nil
 }
 
-// ForageUpdate is called by the server upon completion of a foraging session. This handler can be used by clients to
-// analyse their returns - resources returned to them, as well as number of fish/deer caught.
-func (c *BaseClient) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
-}
+func (c *BaseClient) ForageUpdate(shared.ForageDecision, shared.Resources) {}

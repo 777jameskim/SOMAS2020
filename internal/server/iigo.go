@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
@@ -13,7 +12,7 @@ func (s *SOMASServer) runIIGO() error {
 	defer s.logf("finish runIIGO")
 
 	nonDead := getNonDeadClientIDs(s.gameState.ClientInfos)
-	updateAliveIslands(nonDead, s.gameState)
+	updateAliveIslands(nonDead)
 	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(s.logf, &s.gameState, &s.clientMap, &s.gameConfig)
 	if !iigoSuccessful {
 		s.logf(iigoStatus)
@@ -28,6 +27,7 @@ func (s *SOMASServer) updateIIGOHistoryAndRules(clientID shared.ClientID, pairs 
 			Pairs:    pairs,
 		},
 	)
+	s.gameState.CurrentRulesInPlay = rules.RulesInPlay
 }
 
 func (s *SOMASServer) runIIGOTax() error {
@@ -63,7 +63,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			},
 			{
 				VariableName: rules.ExpectedTaxContribution,
-				Values:       []float64{float64(s.gameState.IIGOTaxAmount[clientID])},
+				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
 		s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
@@ -73,7 +73,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			},
 			{
 				VariableName: rules.SanctionExpected,
-				Values:       []float64{float64(s.gameState.IIGOSanctionMap[clientID])},
+				Values:       []float64{float64(iigointernal.SanctionAmountMapExport[clientID])},
 			},
 		})
 
@@ -99,7 +99,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 				},
 				{
 					VariableName: rules.ExpectedAllocation,
-					Values:       []float64{float64(s.gameState.IIGOAllocationMap[clientID])},
+					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
 				},
 			})
 
@@ -108,12 +108,12 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	return nil
 }
 
-func updateAliveIslands(aliveIslands []shared.ClientID, gamestate gamestate.GameState) {
+func updateAliveIslands(aliveIslands []shared.ClientID) {
 	var forVariables []float64
 	for _, v := range aliveIslands {
 		forVariables = append(forVariables, float64(v))
 	}
-	_ = gamestate.UpdateVariable(rules.IslandsAlive, rules.VariableValuePair{
+	_ = rules.UpdateVariable(rules.IslandsAlive, rules.VariableValuePair{
 		VariableName: rules.IslandsAlive,
 		Values:       forVariables,
 	})

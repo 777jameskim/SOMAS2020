@@ -1,19 +1,15 @@
 package rules
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // init Registers all variables defined in Static variables list
-func InitialVarRegistration() map[VariableFieldName]VariableValuePair {
-	baseCache := make(map[VariableFieldName]VariableValuePair)
+func init() {
 	for _, v := range StaticVariables {
-		e := RegisterNewVariableInternal(v, baseCache)
+		e := RegisterNewVariable(v)
 		if e != nil {
 			panic(fmt.Sprintf("variable registration gone wrong, variable: '%v' has been registered multiple times", v.VariableName))
 		}
 	}
-	return baseCache
 }
 
 // StaticVariables holds all globally defined variables

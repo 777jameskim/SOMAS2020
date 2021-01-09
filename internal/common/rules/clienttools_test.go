@@ -495,8 +495,7 @@ func TestComplianceCheck(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, inPlay := InitialRuleRegistration(true)
-			res, err := ComplianceCheck(tc.rule, tc.variables, inPlay)
+			res, err := ComplianceCheck(tc.rule, tc.variables)
 			testutils.CompareTestErrors(tc.err, err, t)
 			if res != tc.success {
 				t.Errorf("Expected %v got %v", tc.success, res)

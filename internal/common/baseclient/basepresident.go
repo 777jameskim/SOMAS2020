@@ -1,16 +1,13 @@
 package baseclient
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type BasePresident struct {
-	GameState gamestate.ClientGameState
-}
+type BasePresident struct{}
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
@@ -77,7 +74,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 // PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
-	SpeakerSalaryRule, ok := p.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
+	SpeakerSalaryRule, ok := rules.RulesInPlay["salary_cycle_speaker"]
 	var SpeakerSalary shared.Resources = 0
 	if ok {
 		SpeakerSalary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))

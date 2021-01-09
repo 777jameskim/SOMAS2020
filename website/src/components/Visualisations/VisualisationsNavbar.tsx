@@ -8,7 +8,6 @@ import {
   iifovisualisation,
   rolesvisualisation,
   resourcesvisualisation,
-  achievementsvisualisation,
   visualisations,
 } from '../../consts/paths'
 
@@ -44,7 +43,6 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
             {getNavLink('IIFO', iifovisualisation)}
             {getNavLink('Roles', rolesvisualisation)}
             {getNavLink('Resources', resourcesvisualisation)}
-            {getNavLink('Achievements', achievementsvisualisation)}
           </Nav>
           <Nav>
             <LinkContainer exact to={visualisations} onClick={handleReset}>

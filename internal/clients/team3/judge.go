@@ -42,14 +42,13 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
-		copyOfGlobalVarCache := rules.CopyVariableMap(j.c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, copyOfGlobalVarCache)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, j.c.LocalVariableCache)
+			updatedVariable := rules.UpdateVariable(variable.VariableName, variable)
 			if !updatedVariable {
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
@@ -66,7 +65,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		if j.c.trustScore[clientID] > 80 {
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				tempReturn.Rules = append(tempReturn.Rules, j.c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[rule])
+				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
 				tempReturn.Evaluations = append(tempReturn.Evaluations, true)
 			}
 			outMap[clientID] = tempReturn
@@ -74,11 +73,11 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				evaluation := rules.EvaluateRuleFromCaches(rule, j.c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, copyOfGlobalVarCache)
+				evaluation := rules.EvaluateRule(rule)
 				if evaluation.EvalError != nil {
 					return outMap, false
 				}
-				tempReturn.Rules = append(tempReturn.Rules, j.c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[rule])
+				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
 				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
 			}
 			outMap[clientID] = tempReturn
