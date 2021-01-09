@@ -24,7 +24,7 @@ func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
 func (s fakeServerHandle) GetGameConfig() config.ClientConfig {
 	return config.ClientConfig{
 		IIGOClientConfig: config.IIGOConfig{
-			IIGOTermLengths: map[shared.Role]uint{},
+			IIGOTermLengths: s.TermLengths,
 		},
 	}
 }
