@@ -151,7 +151,7 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// overloaded
 	j.logf("hello world %v", winner)
-	return id
+	return winner
 }
 
 func (j *judge) logf(format string, a ...interface{}) {
