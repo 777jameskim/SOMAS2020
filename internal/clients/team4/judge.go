@@ -109,8 +109,6 @@ func (j *judge) HistoricalRetributionEnabled() bool {
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
 
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Runoff,
