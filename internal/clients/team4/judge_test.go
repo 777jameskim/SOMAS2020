@@ -260,7 +260,7 @@ func TestCallPresidentElection(t *testing.T) {
 			monitoring:         shared.MonitorResult{Performed: true, Result: true},
 			turnsInPower:       2,
 			termLength:         3,
-			electionRuleInPlay: false,
+			electionRuleInPlay: true,
 			expectedElection:   false,
 		},
 		{
@@ -268,7 +268,7 @@ func TestCallPresidentElection(t *testing.T) {
 			monitoring:         shared.MonitorResult{Performed: true, Result: false},
 			turnsInPower:       5,
 			termLength:         7,
-			electionRuleInPlay: false,
+			electionRuleInPlay: true,
 			expectedElection:   true,
 		},
 		{
@@ -276,7 +276,7 @@ func TestCallPresidentElection(t *testing.T) {
 			monitoring:         shared.MonitorResult{Performed: true, Result: false},
 			turnsInPower:       5,
 			termLength:         4,
-			electionRuleInPlay: false,
+			electionRuleInPlay: true,
 			expectedElection:   true,
 		},
 	}
