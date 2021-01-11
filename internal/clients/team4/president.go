@@ -1,11 +1,10 @@
 package team4
 
 import (
-	"math/rand"
-	"sort"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"math/rand"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"

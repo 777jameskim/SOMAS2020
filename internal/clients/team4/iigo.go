@@ -34,7 +34,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 
 func (c *client) RequestAllocation() shared.Resources {
 	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
-	allocationGranted := c.BaseClient.RequestAllocation() //c.obs.iigoObs.allocationGranted
+	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
 	importance := c.importances.requestAllocationImportance
 	commonPool := c.ServerReadHandle.GetGameState().CommonPool
@@ -56,9 +56,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.internalParam.giftExtra = false
 	}
 	resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
-	if resNeeded < 0 {
-		resNeeded = (c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving) * shared.Resources(1+c.internalParam.greediness)
-	}
+
 	if ourLifeStatus == shared.Critical {
 		c.internalParam.giftExtra = false
 		maxTurnsInCritical := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
@@ -84,9 +82,7 @@ func (c *client) RequestAllocation() shared.Resources {
 			}
 		}
 	}
-	c.Logf("Allocation granted: %v", allocationGranted)
 
-	c.Logf("Allocation demanded: %v", allocDemanded)
 	return allocDemanded
 }
 
@@ -100,9 +96,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
-			c.obs.iigoObs.taxDemanded = content.IIGOValueData.Amount //shared.Resources(content.IntegerData)
+			c.obs.iigoObs.taxDemanded = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
-			c.obs.iigoObs.allocationGranted = content.IIGOValueData.Amount //shared.Resources(content.IntegerData)
+			c.obs.iigoObs.allocationGranted = shared.Resources(content.IntegerData)
 		case shared.RuleName:
 		// currentRuleID := content.TextData
 		// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
@@ -146,14 +142,13 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if ourLifeStatus != shared.Dead {
 		if numClientAlive != 0 {
 			eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
-
+			resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
 			if ourLifeStatus == shared.Alive {
-				resNeeded = shared.Resources(2) * c.getSafeResourceLevel()
+				resNeeded *= shared.Resources(2)
 				resNeeded += shared.Resources(numClientAlive * 10)
 				c.internalParam.giftExtra = true
 
 			} else if ourLifeStatus == shared.Critical {
-				resNeeded = c.getSafeResourceLevel() - ourResource
 				resNeeded *= shared.Resources(3)
 			}
 			resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
@@ -179,7 +174,6 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if greedyLevel > 0 {
 		allocRequested = resNeeded * shared.Resources((greedyLevel + 1))
 	}
-	c.Logf("Allocation requested: %v", allocRequested)
 
 	return allocRequested
 }
@@ -230,15 +224,11 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 // The tax is the minimum contribution, you can pay more if you want to
 // COMPULSORY
-
 func (c *client) GetTaxContribution() shared.Resources {
-	valToBeReturned := c.BaseClient.GetTaxContribution() // c.obs.iigoObs.taxDemanded
-
-	c.Logf("Team4 tax expected: %v", valToBeReturned)
-
+	valToBeReturned := shared.Resources(0)
 	currentWealth := c.getOurResources()
 
-	collaborationThreshold := 3.0
+	collaborationThreshold := 1.0
 	wealthThreshold := 5 * valToBeReturned
 
 	// Initialise importance vector and parameters vector.
@@ -256,11 +246,10 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if collaborationLevel > collaborationThreshold &&
 		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
-		valToBeReturned = valToBeReturned * shared.Resources(0.2*(collaborationLevel-collaborationThreshold))
+		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
 
 	}
 
-	c.Logf("Tax paid: %v", valToBeReturned)
 	return valToBeReturned
 
 }
