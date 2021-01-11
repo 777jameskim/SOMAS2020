@@ -265,4 +265,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 }
 
-// GetSanctionPayment()
+func (c *client) GetSanctionPayment() shared.Resources {
+	sanction := c.BaseClient.GetSanctionPayment()
+	c.Logf("sanctioned for team4: %v", sanction)
+	return sanction
+}
