@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/SOMAS2020/static/css/main.da8cf3c8.chunk.css",
-    "main.js": "/SOMAS2020/static/js/main.8eddcf5b.chunk.js",
-    "main.js.map": "/SOMAS2020/static/js/main.8eddcf5b.chunk.js.map",
+    "main.js": "/SOMAS2020/static/js/main.9b45945e.chunk.js",
+    "main.js.map": "/SOMAS2020/static/js/main.9b45945e.chunk.js.map",
     "runtime-main.js": "/SOMAS2020/static/js/runtime-main.3aba2a21.js",
     "runtime-main.js.map": "/SOMAS2020/static/js/runtime-main.3aba2a21.js.map",
     "static/js/2.365a41bf.chunk.js": "/SOMAS2020/static/js/2.365a41bf.chunk.js",
@@ -18,6 +18,6 @@
     "static/js/runtime-main.3aba2a21.js",
     "static/js/2.365a41bf.chunk.js",
     "static/css/main.da8cf3c8.chunk.css",
-    "static/js/main.8eddcf5b.chunk.js"
+    "static/js/main.9b45945e.chunk.js"
   ]
 }
